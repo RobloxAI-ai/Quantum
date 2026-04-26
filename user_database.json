@@ -1,0 +1,21 @@
+{
+  "dali": {
+    "key": "123",
+    "balance": 467636.67388661637,
+    "portfolio": 0,
+    "debt": 0.0,
+    "history": [
+      "Sold All: 42 shares @ $208.27",
+      "Sold All: 74 shares @ $208.27",
+      "Sold All: 201 shares @ $27.22",
+      "Sold All: 1295 shares @ $27.22",
+      "Sold All: 470 shares @ $27.22",
+      "Sold All: 5 shares @ $208.27",
+      "Sold All: 6 shares @ $77,855.99",
+      "Sold All: 2 shares @ $424.62",
+      "Sold All: 1 shares @ $271.06",
+      "Sold All: 1 shares @ $69.10",
+      "Sold All: 1 shares @ $27.12"
+    ]
+  }
+}
