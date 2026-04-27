@@ -341,7 +341,20 @@ st.metric(label=f"{ticker} Price", value=f"${current_price:,.2f}")
 
 # Your existing code continues here...
 st.metric("Current Price", f"${current_price:,.2f}")
-current_price = float(data['Close'].iloc[-1])
+# --- THE SAFETY GATE ---
+# --- THE SAFETY GATE ---
+# We check if the data exists before trying to read it
+if not data.empty and 'Close' in data.columns:
+    current_price = float(data['Close'].iloc[-1])
+    st.success(f"{ticker} Live Feed Active")
+else:
+    # If the market is closed or we are blocked, use a fallback
+    # This pulls the last known price from 'info' instead of crashing
+    current_price = info.get('regularMarketPrice', info.get('previousClose', 0.0))
+    st.warning(f"{ticker} Data Stream Paused. Showing last known price.")
+
+# Now this line is safe because current_price is guaranteed to be a number
+st.metric("Current Price", f"${current_price:,.2f}")
 # --- DEFINE ALL USER VARIABLES ---
 # This pulls the data from your save file into the script
 current_balance = st.session_state.user_data.get("balance", 0.0)
