@@ -316,19 +316,19 @@ def get_terminal_data(symbol):
 
 data, info, news = get_terminal_data(ticker)
 
-# --- THE DOOR GUARD (REPLACES LINE 339) ---
+# --- THE SAFETY DOOR ---
 if data is not None and not data.empty and 'Close' in data.columns:
-    # If we have real data, use the last price
+    # If the data is good, use it
     current_price = float(data['Close'].iloc[-1])
-    market_status = "🟢 LIVE"
+    status_msg = "🟢 Market Connected"
 else:
-    # If the data is empty (rate limit), we look at the last known price in the info dict
-    # This keeps the app from crashing!
+    # If Yahoo blocks us or the market is closed, we use a fallback price
+    # We try to get it from 'info', if not, we use 0.0 just to keep the app alive
     current_price = info.get('regularMarketPrice', info.get('previousClose', 0.0))
-    market_status = "🟡 DATA DELAYED / RATE LIMITED"
+    status_msg = "🟡 Data Delayed (Rate Limited)"
 
-# Now the rest of your app can use current_price without crashing
-st.sidebar.markdown(f"**Status:** {market_status}")
+# This line ensures your app still has a number to work with
+st.sidebar.markdown(f"**Status:** {status_msg}")
 
 # Your existing code continues here...
 st.metric("Current Price", f"${current_price:,.2f}")
