@@ -316,13 +316,23 @@ def get_terminal_data(symbol):
 
 data, info, news = get_terminal_data(ticker)
 
-# --- THE SAFETY GATE ---
+# --- THE SMART GATE ---
 if not data.empty and 'Close' in data.columns:
     current_price = float(data['Close'].iloc[-1])
+    market_status = "🟢 LIVE"
 else:
-    st.warning("Terminal Connection Interrupted. Refreshing in 60s...")
-    st.stop() # This prevents the app from trying to run the math below
-# -----------------------
+    # If the market is closed or blocked, we try to get the "Previous Close"
+    # This keeps the app working even for Saudi Aramco at night!
+    try:
+        t = yf.Ticker(ticker)
+        current_price = t.fast_info['previousClose']
+        market_status = "🔴 CLOSED / DELAYED"
+    except:
+        current_price = 0.0
+        market_status = "OFFLINE"
+
+# Instead of st.stop(), we just show the status in the sidebar
+st.sidebar.markdown(f"**Market Status:** {market_status}")
 
 # Your existing code continues here...
 st.metric("Current Price", f"${current_price:,.2f}")
