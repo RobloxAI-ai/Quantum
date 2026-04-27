@@ -8,12 +8,12 @@ import time
 import json
 import os
 import json
+from datetime import datetime, timedelta
 from supabase import create_client
 # --- INITIALIZE SESSION STATE ---
 # Create a dictionary to hold shares for each ticker separately
 if 'portfolio' not in st.session_state:
     st.session_state.portfolio = {} 
-from datetime import datetime, timedelta
 # Adds 3 hours to the server time to match KSA
 st.sidebar.write(f"{(datetime.utcnow() + timedelta(hours=3)).strftime('%H:%M:%S')}")
 # Ensure cash and debt are ready
