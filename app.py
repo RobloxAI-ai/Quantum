@@ -1,3 +1,4 @@
+import requests
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -274,31 +275,44 @@ with st.expander("VIEW ASSET LEGEND"):
         
         st.caption("Use these symbols in the Search Bar for manual lookup.")
     # --- UPDATED DATA ENGINE ---
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=600)
 def get_terminal_data(symbol):
-    t = yf.Ticker(symbol)
-    df = t.history(period="2y")
-    
-    # Flatten columns if multi-indexed
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-    
-    # 1. SMAs
-    df['SMA_20'] = df['Close'].rolling(window=20).mean()
-    df['SMA_50'] = df['Close'].rolling(window=50).mean()
-    
-    # 2. RSI CALCULATION (This fixes the KeyError)
-    delta = df['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-    rs = gain / loss
-    df['RSI'] = 100 - (100 / (1 + rs))
-    
-    # Handle any empty news/info
-    info = t.info if t.info else {}
-    news = t.news if t.news else []
-    
-    return df, info, news
+    try:
+        # 1. Setup session to look like a browser
+        _session = requests.Session()
+        _session.headers.update({'User-Agent': 'Mozilla/5.0'})
+        t = yf.Ticker(symbol, session=_session)
+        
+        # 2. PRIORITY: Get Price History (This rarely causes the error)
+        df = t.history(period="2y")
+        
+        if df.empty:
+            return pd.DataFrame(), {}, []
+
+        # Technical Indicators... (Keep your existing math here)
+        df['SMA_20'] = df['Close'].rolling(window=20).mean()
+        df['SMA_50'] = df['Close'].rolling(window=50).mean()
+
+        # 3. THE RISK ZONE: Wrap Info and News in their own safe boxes
+        # If these fail, the function keeps going instead of crashing!
+        safe_info = {}
+        try:
+            # We only ask for info if we absolutely have to
+            safe_info = t.info if t.info else {}
+        except:
+            safe_info = {"longBusinessSummary": "Market info limited. Chart active."}
+            
+        safe_news = []
+        try:
+            safe_news = t.news if t.news else []
+        except:
+            safe_news = []
+            
+        return df, safe_info, safe_news
+
+    except Exception:
+        # If the whole thing fails, return empty so the main app can show your warning
+        return pd.DataFrame(), {}, []
 
 data, info, news = get_terminal_data(ticker)
 current_price = float(data['Close'].iloc[-1])
