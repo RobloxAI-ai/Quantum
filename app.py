@@ -489,7 +489,8 @@ if st.button("SELL ALL SHARES", use_container_width=True):
         st.error("You have no shares to sell!")
 # Inside your BUY button logic
 st.session_state.trade_log.append({
-    "Time": datetime.datetime.now().strftime("%H:%M:%S"),
+    # Change this:
+    "Time": datetime.now().strftime("%H:%M:%S"),
     "Type": "BUY",
     "Asset": ticker,
     "Price": f"${current_price:.2f}"
