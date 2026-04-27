@@ -9,6 +9,13 @@ import json
 import os
 import json
 from supabase import create_client
+from datetime import datetime, timedelta
+
+# Get current UTC time and add 3 hours for KSA
+ksa_now = datetime.utcnow() + timedelta(hours=3)
+current_time = ksa_now.strftime("%H:%M:%S")
+
+st.sidebar.subheader(f"Terminal Time: {current_time}")
 # --- INITIALIZE SESSION STATE ---
 # Create a dictionary to hold shares for each ticker separately
 if 'portfolio' not in st.session_state:
@@ -315,7 +322,7 @@ data, info, news = get_terminal_data(ticker)
 
 # --- START OF SAFETY GATE ---
 if data is None or data.empty:
-    st.error("⚠️ DATA STREAM OFFLINE: Market data is currently unavailable. Please wait 60 seconds and refresh.")
+    st.error("DATA STREAM OFFLINE: Market data is currently unavailable. Please wait 60 seconds and refresh.")
     st.stop() # This stops the rest of the app from running and crashing
 # --- END OF SAFETY GATE ---
 
