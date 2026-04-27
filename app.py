@@ -312,6 +312,14 @@ def get_terminal_data(symbol):
         return pd.DataFrame(), {}, []
 
 data, info, news = get_terminal_data(ticker)
+
+# --- START OF SAFETY GATE ---
+if data is None or data.empty:
+    st.error("⚠️ DATA STREAM OFFLINE: Market data is currently unavailable. Please wait 60 seconds and refresh.")
+    st.stop() # This stops the rest of the app from running and crashing
+# --- END OF SAFETY GATE ---
+
+# Now this line is safe because we checked if data exists above
 current_price = float(data['Close'].iloc[-1])
 # --- DEFINE ALL USER VARIABLES ---
 # This pulls the data from your save file into the script
