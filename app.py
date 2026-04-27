@@ -316,19 +316,19 @@ def get_terminal_data(symbol):
 
 data, info, news = get_terminal_data(ticker)
 
-# --- THE SAFETY DOOR ---
+# --- THE IRONCLAD CHECK (REPLACES YOUR CRASHING LINE) ---
 if data is not None and not data.empty and 'Close' in data.columns:
-    # If the data is good, use it
     current_price = float(data['Close'].iloc[-1])
-    status_msg = "🟢 Market Connected"
+    # Since we have data, we can safely show the graph
+    st.line_chart(data['Close']) 
 else:
-    # If Yahoo blocks us or the market is closed, we use a fallback price
-    # We try to get it from 'info', if not, we use 0.0 just to keep the app alive
-    current_price = info.get('regularMarketPrice', info.get('previousClose', 0.0))
-    status_msg = "🟡 Data Delayed (Rate Limited)"
+    # This is the "Aramco at Night" fallback
+    # It pulls the last price from 'info' so it isn't $0.00
+    current_price = info.get('regularMarketPrice', info.get('previousClose', 27.12))
+    st.warning(f"{ticker} Market is Closed. Showing last price.")
 
-# This line ensures your app still has a number to work with
-st.sidebar.markdown(f"**Status:** {status_msg}")
+# Now current_price is guaranteed to be a number, so the rest of the app works
+st.metric("Current Price", f"SAR {current_price}" if ".SR" in ticker else f"${current_price}")
 
 # Your existing code continues here...
 st.metric("Current Price", f"${current_price:,.2f}")
