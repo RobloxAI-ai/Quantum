@@ -13,6 +13,9 @@ from supabase import create_client
 # Create a dictionary to hold shares for each ticker separately
 if 'portfolio' not in st.session_state:
     st.session_state.portfolio = {} 
+from datetime import datetime, timedelta
+# Adds 3 hours to the server time to match KSA
+st.sidebar.write(f"{(datetime.utcnow() + timedelta(hours=3)).strftime('%H:%M:%S')}")
 # Ensure cash and debt are ready
 if 'balance' not in st.session_state:
     st.session_state.balance = 10000.0
@@ -138,12 +141,9 @@ if 'portfolio' not in st.session_state:
     st.session_state.portfolio = 0
 
 # --- FRAGMENT 1: THE SMOOTH CLOCK ---
-# --- FRAGMENT 1: THE SMOOTH CLOCK ---
 @st.fragment(run_every="1s")
 def render_clock():
-    # Use UTC then add 3 hours for KSA (Dammam) Time
-    now = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
-    
+    now = datetime.datetime.now()
     st.markdown(f"""
         <div style="background-color: #161B22; border: 1px solid #30363D; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 10px;">
             <span style="color: #00FFC8; font-size: 1.5em; font-family: monospace; font-weight: bold;">{now.strftime("%H:%M:%S")}</span>
