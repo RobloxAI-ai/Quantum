@@ -498,7 +498,7 @@ st.session_state.trade_log.append({
 
 # Inside your SELL button logic
 st.session_state.trade_log.append({
-    "Time": datetime.datetime.now().strftime("%H:%M:%S"),
+    "Time": datetime.now().strftime("%H:%M:%S"),
     "Type": "SELL",
     "Asset": ticker,
     "Price": f"${current_price:.2f}"
