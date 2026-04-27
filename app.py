@@ -9,13 +9,6 @@ import json
 import os
 import json
 from supabase import create_client
-from datetime import datetime, timedelta
-
-# Get current UTC time and add 3 hours for KSA
-ksa_now = datetime.utcnow() + timedelta(hours=3)
-current_time = ksa_now.strftime("%H:%M:%S")
-
-st.sidebar.subheader(f"Terminal Time: {current_time}")
 # --- INITIALIZE SESSION STATE ---
 # Create a dictionary to hold shares for each ticker separately
 if 'portfolio' not in st.session_state:
@@ -271,62 +264,33 @@ with st.expander("VIEW ASSET LEGEND"):
         
         st.caption("Use these symbols in the Search Bar for manual lookup.")
     # --- UPDATED DATA ENGINE ---
-import requests
-
-# 1. Setup a persistent session to look like a real browser
-# This helps prevent the YFRateLimitError on Streamlit Cloud
-_session = requests.Session()
-_session.headers.update({
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-})
-
-@st.cache_data(ttl=600) # Increased to 10 minutes to stay under the radar
+@st.cache_data(ttl=300)
 def get_terminal_data(symbol):
-    try:
-        # Pass the custom session to yfinance
-        t = yf.Ticker(symbol, session=_session)
-        
-        # Priority 1: Market History (The Chart)
-        df = t.history(period="2y")
-        
-        if df.empty:
-            return pd.DataFrame(), {}, []
-
-        # Technical Analysis
-        df['SMA_20'] = df['Close'].rolling(window=20).mean()
-        df['SMA_50'] = df['Close'].rolling(window=50).mean()
-        delta = df['Close'].diff()
-        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-        df['RSI'] = 100 - (100 / (1 + (gain / loss)))
-
-        # Priority 2: Info and News (The parts that usually trigger the error)
-        # We put these in their own 'try' so if they fail, the chart still shows up
-        try:
-            info = t.info if t.info else {}
-        except:
-            info = {"longBusinessSummary": "Market info currently restricted by provider."}
-            
-        try:
-            news = t.news if t.news else []
-        except:
-            news = []
-            
-        return df, info, news
-
-    except Exception as e:
-        # If everything fails, return empty objects so the app doesn't crash
-        return pd.DataFrame(), {}, []
+    t = yf.Ticker(symbol)
+    df = t.history(period="2y")
+    
+    # Flatten columns if multi-indexed
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+    
+    # 1. SMAs
+    df['SMA_20'] = df['Close'].rolling(window=20).mean()
+    df['SMA_50'] = df['Close'].rolling(window=50).mean()
+    
+    # 2. RSI CALCULATION (This fixes the KeyError)
+    delta = df['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    rs = gain / loss
+    df['RSI'] = 100 - (100 / (1 + rs))
+    
+    # Handle any empty news/info
+    info = t.info if t.info else {}
+    news = t.news if t.news else []
+    
+    return df, info, news
 
 data, info, news = get_terminal_data(ticker)
-
-# --- START OF SAFETY GATE ---
-if data is None or data.empty:
-    st.error("DATA STREAM OFFLINE: Market data is currently unavailable. Please wait 60 seconds and refresh.")
-    st.stop() # This stops the rest of the app from running and crashing
-# --- END OF SAFETY GATE ---
-
-# Now this line is safe because we checked if data exists above
 current_price = float(data['Close'].iloc[-1])
 # --- DEFINE ALL USER VARIABLES ---
 # This pulls the data from your save file into the script
