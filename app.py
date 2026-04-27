@@ -138,9 +138,12 @@ if 'portfolio' not in st.session_state:
     st.session_state.portfolio = 0
 
 # --- FRAGMENT 1: THE SMOOTH CLOCK ---
+# --- FRAGMENT 1: THE SMOOTH CLOCK ---
 @st.fragment(run_every="1s")
 def render_clock():
-    now = datetime.datetime.now()
+    # Use UTC then add 3 hours for KSA (Dammam) Time
+    now = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
+    
     st.markdown(f"""
         <div style="background-color: #161B22; border: 1px solid #30363D; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 10px;">
             <span style="color: #00FFC8; font-size: 1.5em; font-family: monospace; font-weight: bold;">{now.strftime("%H:%M:%S")}</span>
