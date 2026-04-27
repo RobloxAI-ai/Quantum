@@ -142,18 +142,23 @@ if 'portfolio' not in st.session_state:
 
 # --- FRAGMENT 1: THE SMOOTH CLOCK ---
 # --- FRAGMENT 1: THE SMOOTH CLOCK ---
+# --- FRAGMENT 1: THE SMOOTH CLOCK ---
 @st.fragment(run_every="1s")
 def render_clock():
-    # Fix: Use utcnow + 3 hours to avoid the AttributeError and fix the time
-    now = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
-    
+    # Use datetime.utcnow() directly if you imported it via 'from datetime import datetime'
+    # We also add a try/except just in case the import style changes
+    try:
+        now = datetime.utcnow() + timedelta(hours=3)
+    except:
+        import datetime as dt
+        now = dt.datetime.utcnow() + dt.timedelta(hours=3)
+        
     st.markdown(f"""
         <div style="background-color: #161B22; border: 1px solid #30363D; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 10px;">
             <span style="color: #00FFC8; font-size: 1.5em; font-family: monospace; font-weight: bold;">{now.strftime("%H:%M:%S")}</span>
             <span style="color: #8B949E; margin-left: 15px;">| {now.strftime("%b %d, %Y")}</span>
         </div>
     """, unsafe_allow_html=True)
-
 render_clock()
 # --- TICKER TAPE ---
 @st.cache_data(ttl=600)
