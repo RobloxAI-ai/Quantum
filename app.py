@@ -315,6 +315,17 @@ def get_terminal_data(symbol):
         return pd.DataFrame(), {}, []
 
 data, info, news = get_terminal_data(ticker)
+
+# --- THE SAFETY GATE ---
+if not data.empty and 'Close' in data.columns:
+    current_price = float(data['Close'].iloc[-1])
+else:
+    st.warning("Terminal Connection Interrupted. Refreshing in 60s...")
+    st.stop() # This prevents the app from trying to run the math below
+# -----------------------
+
+# Your existing code continues here...
+st.metric("Current Price", f"${current_price:,.2f}")
 current_price = float(data['Close'].iloc[-1])
 # --- DEFINE ALL USER VARIABLES ---
 # This pulls the data from your save file into the script
